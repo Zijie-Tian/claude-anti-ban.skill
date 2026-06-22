@@ -1,0 +1,50 @@
+{
+  "skill_name": "claude-anti-ban",
+  "note": "These test guidance/coverage quality. The scripts themselves need a real Windows/Parallels host to execute, so the with-skill subagent produces an audit/config PLAN and uses the bundled scripts/refs; graders check coverage of the key signals and correctness of approach, not a live configured machine.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "audit-windows-vm-for-ban-risk",
+      "prompt": "I run Claude on a Windows 11 VM that sits behind a US proxy. Before I rely on it, go through the machine carefully and tell me anything that could get my account flagged or banned — timezone, language, IP/DNS/IPv6 leaks, automation, the works. Give me the exact checks.",
+      "expected_output": "A structured audit that covers exit-IP geolocation, OS+browser timezone, browser language (navigator.language/Accept-Language) including the 'browser language doesn't follow the OS' point, IPv6/DNS/WebRTC leak checks, navigator.webdriver, and clock — and points to the audit_windows.ps1 / fp_check.ps1 scripts. Should state the consistency rule and the honest caveat about behaviour/account factors.",
+      "files": [],
+      "assertions": [
+        {"text": "Names exit-IP geolocation as the anchor everything aligns to", "kind": "llm"},
+        {"text": "Explicitly notes browser language is set by the browser, not the OS", "kind": "llm"},
+        {"text": "Covers IPv6 leak AND DNS leak AND WebRTC", "kind": "llm"},
+        {"text": "Checks navigator.webdriver / automation as a top-severity flag", "kind": "llm"},
+        {"text": "References the bundled audit_windows.ps1 and fp_check.ps1 scripts", "kind": "llm"},
+        {"text": "States the IP==timezone==browser-timezone==browser-language consistency rule", "kind": "llm"},
+        {"text": "Includes the honest caveat that this is not a guarantee and behaviour/account factors matter", "kind": "llm"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "fix-us-ip-chinese-browser-mismatch",
+      "prompt": "My VPN exits in California but services keep flagging my account. I just checked and my browser is still reporting Chinese (zh-CN) even though I set Windows to English. How do I make the whole machine consistently look American so this stops?",
+      "expected_output": "Diagnoses the mismatch (US IP + zh-CN browser language + likely China timezone), explains that navigator.language comes from the browser's own accept_languages not the OS, and walks through fixing OS timezone/locale (set_locale.ps1) AND the browser language (fix_browser_language.ps1), then verifying with fp_check.ps1. Mentions disabling auto-timezone and that the browser must be closed before editing.",
+      "files": [],
+      "assertions": [
+        {"text": "Correctly identifies that navigator.language follows the browser's accept_languages, not the OS", "kind": "llm"},
+        {"text": "Prescribes fixing both the OS (timezone/locale) and the browser language separately", "kind": "llm"},
+        {"text": "Uses/points to fix_browser_language.ps1 and set_locale.ps1", "kind": "llm"},
+        {"text": "Says to verify the live result with fp_check.ps1 or a leak-test page", "kind": "llm"},
+        {"text": "Mentions closing the browser before editing its profile (avoid corruption)", "kind": "llm"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "build-failclosed-gateway",
+      "prompt": "I have an Ubuntu gateway VM and a Windows VM in Parallels. I want ALL of the Windows traffic and the gateway's own traffic to go out through my VLESS node, and if the proxy ever drops, Windows should lose internet rather than leak my real IP. How do I set this up and prove it works?",
+      "expected_output": "Describes the TPROXY gateway architecture (xray dokodemo TPROXY, nftables redirect for LAN + own output, forward policy drop kill switch, policy routing, sockopt mark 255 loop guard), references proxy-gateway.md, and explains verifying with gateway_audit.sh including the fail-closed test. Should mention forcing UDP/DNS/IPv6 through too.",
+      "files": [],
+      "assertions": [
+        {"text": "Proposes a TPROXY gateway with a forward-drop / fail-closed kill switch", "kind": "llm"},
+        {"text": "Covers proxying the gateway's OWN traffic (output chain) plus loop prevention (mark 255 / node-IP exclusion)", "kind": "llm"},
+        {"text": "References proxy-gateway.md for the concrete config", "kind": "llm"},
+        {"text": "Verifies with gateway_audit.sh and a fail-closed (stop-xray) test", "kind": "llm"},
+        {"text": "Addresses UDP/DNS/IPv6 going through the proxy too (no leak path)", "kind": "llm"}
+      ]
+    }
+  ]
+}
