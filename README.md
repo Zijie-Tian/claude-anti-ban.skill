@@ -47,7 +47,7 @@ claude-anti-ban/
 Drop the folder into your Claude Code skills directory:
 
 ```bash
-git clone https://github.com/Zijie-Tian/claude-anti-ban.git ~/.claude/skills/claude-anti-ban
+git clone https://github.com/Zijie-Tian/claude-anti-ban.skill.git ~/.claude/skills/claude-anti-ban
 ```
 
 Claude Code will pick it up automatically. Then just describe the task — e.g. *"audit my Windows VM behind
