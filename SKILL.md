@@ -111,6 +111,13 @@ Then have the user reopen their real browser and confirm on a leak-test page (`b
 - **On the machine itself:** run each `.ps1` directly in PowerShell as described above. The `.sh` runs on the Linux gateway.
 - **Driving a guest VM remotely** (e.g. a Parallels VM from the Mac host): the delivery has sharp edges — `prlctl exec` silently drops some args, the remote shell is zsh, and `powershell -Command -` mishandles multi-line blocks. **Read `references/remote-execution.md` before running anything remotely** — it gives the reliable patterns (deliver the `.ps1` via stdin to `cat > file`, run with `-File`; use no-`--current-user` for SYSTEM/admin; etc.). The scripts are written to be run as files precisely to sidestep these.
 
+## If the machine is a Parallels VM on macOS
+
+Two VM-specific things bite here — full details and commands in `references/parallels-isolation-and-limits.md`:
+
+- **Isolate it from the host's apps.** By default Parallels shares applications both ways — the host's apps appear in the guest's Start menu (e.g. "Claude (Mac)") and vice-versa — so a click in the guest can launch the *host's* copy of an app, defeating the contained-VM point. Turn it off: `prlctl set "<vm>" --sh-app-host-to-guest off` (and `--sh-app-guest-to-host off`), or `--isolate-vm on` for a fully sealed sandbox.
+- **Claude's Cowork / "workspace" cannot run inside a Parallels VM on Apple Silicon.** Cowork boots a Hyper-V micro-VM (ships a `.vhdx`, uses WHPX), which needs nested virtualization — and **Parallels nested virtualization is Intel-only; it does not exist on Apple Silicon (M1–M4).** Windows 11 Pro is necessary but not sufficient, and the `Nested virtualization` toggle (`<VirtualizedHV>` in `config.pvs`) is an inert legacy field on ARM. Use **Claude Code (CLI) inside the VM** (no Hyper-V needed — it keeps all the isolation/proxy/region work intact), or run Cowork on the Mac host / a real Linux box instead.
+
 ## Severity — where to spend effort
 
 Not all signals are equal. In rough order of how reliably they get an account flagged:
